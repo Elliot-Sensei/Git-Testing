@@ -23,12 +23,13 @@ every arrow below corresponds to one explicit command you run:
   both at once (fetch, then merge).
 
 **Why this matters:**
+
 - **Branches exist so work-in-progress never breaks `main`.** You can
   experiment, commit broken code, and abandon a branch entirely — `main`
   is untouched until you deliberately `merge`.
 - **Merging is just "combine this branch's history into mine."** Git
   does it automatically when the changes don't overlap. When two
-  branches edited the *same lines*, Git can't guess which one is
+  branches edited the _same lines_, Git can't guess which one is
   correct — that's a **conflict**, and it stops to ask you.
 - **Push and pull are the same idea, applied to a remote copy.** GitHub
   doesn't know about your commits until you `push`. You don't know
@@ -50,29 +51,29 @@ overwrites the previous state with no history.
    (if this is a fresh clone) or already committed (if cloned from the
    training repo as-is).
 2. Open `team-notes.txt`, add a line under the agenda list.
-3. `git add team-notes.txt` — *stages* the change. Staging exists so you
+3. `git add team-notes.txt` — _stages_ the change. Staging exists so you
    can choose exactly what goes into the next snapshot, even if you've
    edited five files but only want to commit one of them right now.
 4. `git commit -m "Update team notes"` — creates the permanent snapshot.
    The message matters: six months from now, `git log` is how someone
-   (maybe you) figures out *why* a line changed, not just that it did.
+   (maybe you) figures out _why_ a line changed, not just that it did.
 5. `git log --oneline` to confirm.
 
 ## Exercise 2 — Diff before you commit
 
-**Why:** `status` tells you *which files* changed; `diff` tells you
-*exactly what* changed, line by line. Reading your diff before
+**Why:** `status` tells you _which files_ changed; `diff` tells you
+_exactly what_ changed, line by line. Reading your diff before
 committing is the single habit that catches the most embarrassing
 mistakes — leftover debug code, accidental deletions, secrets pasted in
 by accident.
 
 1. Edit `todo.txt`, check off one item by changing `[ ]` to `[x]`.
-2. `git diff` — notice it shows the change *before* staging. This is
+2. `git diff` — notice it shows the change _before_ staging. This is
    your last chance to review before the change even enters staging.
 3. `git add todo.txt`
 4. `git diff --staged` — same change, now shown as staged. Git
    deliberately separates these two views (unstaged vs. staged) so you
-   always know exactly what the *next commit* will contain, even if
+   always know exactly what the _next commit_ will contain, even if
    your working directory has other unrelated edits sitting around.
 5. `git commit -m "Check off first todo item"`
 
@@ -83,7 +84,7 @@ splitting off an isolated line of history to experiment in. If step 2
 below goes horribly wrong, `main` was never touched; you just delete
 the branch and nothing is lost.
 
-1. `git switch -c practice/add-step` — creates the branch *and* moves
+1. `git switch -c practice/add-step` — creates the branch _and_ moves
    you onto it in one step. Everything you commit from here only
    exists on `practice/add-step` until it's merged.
 2. Edit `recipe.txt`, add a 4th step to the Steps list (e.g. "Serve with
@@ -104,17 +105,17 @@ happens for real with something that matters.
 
 1. On `main`, edit `recipe.txt`'s step 3 to say "Cook on a hot griddle
    until golden brown, then flip carefully." Commit it on `main`.
-   *(Now both `main` and `practice/add-step` have diverged from the
+   _(Now both `main` and `practice/add-step` have diverged from the
    same original file — exactly like two teammates editing the same
-   function in parallel.)*
+   function in parallel.)_
 2. Switch back: `git switch practice/add-step`.
 3. `git merge main` — this should conflict on `recipe.txt` because both
    branches touched overlapping content. **Git stopping here is a
    feature, not a failure** — it refuses to silently pick a winner and
    possibly delete someone's work.
 4. Open `recipe.txt`, find the `<<<<<<<` / `=======` / `>>>>>>>` markers.
-   Everything between `<<<<<<<` and `=======` is *your current
-   branch's* version; between `=======` and `>>>>>>>` is the *incoming*
+   Everything between `<<<<<<<` and `=======` is _your current
+   branch's_ version; between `=======` and `>>>>>>>` is the _incoming_
    version. Git shows you both because only a human knows which one
    (or what combination) is actually correct.
 5. Edit the file to keep both the step-3 wording change and the new
@@ -128,55 +129,9 @@ happens for real with something that matters.
 8. `git log --oneline --graph --all` — see the merge commit tying both
    branches together, with two parent lines joining into one.
 
-## Exercise 5 — Stash
+## Exercise 5 — Undoing
 
-**Why:** You're mid-edit, something urgent comes up (a bug report, a
-teammate needs you on another branch), and your current change isn't
-ready to commit. Without stash, your only options would be to commit
-something half-finished or lose the edit by switching branches. Stash
-is a third option: a temporary shelf that holds uncommitted changes
-*outside* your working directory and *outside* your commit history, so
-nothing you've typed is ever lost while you deal with the interruption.
-
-**Part A — basic stash and restore**
-
-1. Edit `team-notes.txt` but don't commit.
-2. `git status` — confirm it shows as modified.
-3. `git stash` — working directory is clean again (run `git status` to
-   check). The edit isn't gone, it's just set aside on a stack.
-4. `git stash list` — shows one entry, e.g.
-   `stash@{0}: WIP on main: ...`. You can stash multiple times; they
-   stack up in order, most recent first.
-5. `git stash pop` — re-applies the most recent stash **and removes it
-   from the list** in one step. Run `git status` again to confirm your
-   edit is back.
-
-**Part B — why `pop` vs. `apply` matters**
-
-6. Make another edit to `team-notes.txt`, then `git stash`.
-7. `git stash apply` — re-applies the stash but **leaves it in the
-   list**. Run `git stash list` — notice the entry is still there.
-   Use `apply` (instead of `pop`) when you want to bring the same
-   stashed change onto more than one branch, or you're not 100% sure
-   you're ready to discard the backup yet.
-8. Once you're sure you don't need it anymore: `git stash drop` —
-   explicitly removes it from the list. (`pop` is really just
-   `apply` + `drop` combined.)
-
-**Part C — switching branches with a stash**
-
-9. Edit `todo.txt`, then `git stash` to clear your working directory.
-10. `git switch -c practice/urgent-fix` — now imagine this is the
-    "urgent interruption" branch. Make and commit a small change here,
-    then `git switch` back to where you started.
-11. `git stash pop` — your original `todo.txt` edit returns, completely
-    unaffected by the branch switching in between. This is the whole
-    point of stash: it's independent of which branch you're on when you
-    pop it.
-
-## Exercise 6 — Undoing
-
-**Why:** "Undo" means different things in Git depending on *where* the
+**Why:** "Undo" means different things in Git depending on _where_ the
 unwanted change lives — still in your working directory, staged, just
 committed, or already pushed/shared. Picking the wrong tool for the
 situation can either fail to help or (for `reset --hard`) permanently
@@ -188,7 +143,7 @@ one applies.
 1. Add an accidental line to `todo.txt`, don't stage or commit it.
 2. `git status` — shows it as "Changes not staged for commit."
 3. `git restore todo.txt` — throws the edit away and restores the file
-   to its last committed state. This is safe *only* because nothing was
+   to its last committed state. This is safe _only_ because nothing was
    committed yet — there's no history to protect, so there's nothing
    wrong with deleting it outright.
 
@@ -222,12 +177,12 @@ one applies.
     close it. Use `revert` (never `reset`/`amend`) once a commit is
     pushed or shared: it preserves history so teammates' copies aren't
     contradicted, while still fixing the mistake going forward.
-13. `git log --oneline` — notice both the original bad commit *and* the
+13. `git log --oneline` — notice both the original bad commit _and_ the
     revert commit are visible. That transparency is the trade-off:
     slightly messier history, in exchange for never silently rewriting
     something someone else may already have.
 
-## Exercise 7 — Push/pull scenarios with GitHub (do this with a teammate)
+## Exercise 6 — Push/pull scenarios with GitHub (do this with a teammate)
 
 **Why:** Commits, branches, and merges all happen locally first — push
 and pull are how that work actually reaches your team, and they're also
@@ -255,7 +210,7 @@ the situations you'll actually run into.
 **Scenario B — fast-forward pull (the easy case)**
 
 4. Have your teammate `git fetch` then `git log main..origin/main
-   --oneline` — this shows them exactly what's new on GitHub *before*
+--oneline` — this shows them exactly what's new on GitHub _before_
    touching their files. `fetch` only updates Git's knowledge of the
    remote; it never changes your working directory.
 5. Teammate runs `git pull` on `main` — since they have no conflicting
@@ -284,7 +239,7 @@ the situations you'll actually run into.
     machines.
 11. First push succeeds. Second person runs `git pull` — this time it
     conflicts, exactly like Exercise 4, because `pull` is just `fetch`
-    + `merge` under the hood, and the merge step hits overlapping edits.
+    - `merge` under the hood, and the merge step hits overlapping edits.
 12. Resolve it the same way as Exercise 4: open the file, fix the
     `<<<<<<<`/`=======`/`>>>>>>>` markers, `git add recipe.txt`,
     `git commit` to finish the merge, then `git push` to share the
