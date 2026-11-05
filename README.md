@@ -105,6 +105,49 @@ login form"), blank line, then details if needed.
 
 ---
 
+## 6a. When Git Opens an Editor (vim) for a Commit Message
+
+Some commands — `git commit` (no `-m`), `git revert`, `git merge` with
+conflicts — don't take a message on the command line. Instead they open
+a text editor (often **vim** by default on Windows/Mac/Linux) pre-filled
+with a draft message and comment lines starting with `#`.
+
+If you've never used vim, it looks frozen at first because typing
+doesn't do what you expect. Here's the whole thing you need to know:
+
+| Situation | What to do |
+|---|---|
+| You just see the file and want to keep the message as-is | Press `Esc`, then type `:wq`, then `Enter` |
+| You want to edit the message text first | Press `i` to enter **Insert mode** (you'll see `-- INSERT --` at the bottom), type your changes, then `Esc`, `:wq`, `Enter` |
+| You want to cancel the whole commit/revert/merge | Press `Esc`, then type `:cq`, then `Enter` (exits with an error, which aborts it) |
+
+Key things that trip people up:
+- **`Esc` first, always.** If you're not sure what mode you're in,
+  pressing `Esc` is always safe and gets you back to normal mode.
+- **`:wq` = write (save) + quit.** This is what actually completes the
+  commit — closing the editor window any other way (closing the
+  terminal, clicking the X) does **not** save it properly.
+- Lines starting with `#` are comments and are ignored — you don't need
+  to delete them.
+
+### "Found a swap file" warning
+
+If you see a message like:
+```
+E325: ATTENTION
+Found a swap file by the name "...COMMIT_EDITMSG.swp"
+```
+This isn't caused by the command you just ran — it means a **previous**
+vim session editing a commit message didn't close properly (terminal
+was closed, the process crashed, etc.), leaving a leftover lock file.
+
+At the prompt `(O)pen Read-Only, (E)dit anyway, (R)ecover, (D)elete it, (Q)uit, (A)bort:`
+press **`D`** to delete the stale swap file and continue — it's safe
+here since it's only a scratch file for the commit message, not your
+tracked content. Then redo your `git commit`/`git revert`.
+
+---
+
 ## 7. Branching
 
 | Command | Purpose |
