@@ -8,27 +8,19 @@ throwaway copy of this folder/repo — it's meant for breaking things.
 Before diving in, here's the mental model every exercise below is built
 on. Your **local repo** has branches and merges; GitHub is just another
 copy of that repo ("the remote") that you sync with using
-push/fetch/pull.
+push/fetch/pull. Nothing moves between any of these places automatically —
+every arrow below corresponds to one explicit command you run:
 
-```mermaid
-flowchart LR
-    subgraph You["💻 Your Computer"]
-        direction LR
-        WD["Working Directory<br/>files you edit"] -- "git add" --> SA["Staging Area<br/>changes ready to commit"]
-        SA -- "git commit" --> M["Local Repo<br/>branch: main"]
-        M -- "git switch -c feature" --> F["Local Repo<br/>branch: feature"]
-        F -- "git merge feature<br/>brings it back into main" --> M
-    end
-
-    subgraph GH["☁️ GitHub (origin)"]
-        direction LR
-        RM["Remote Repo<br/>origin/main"]
-    end
-
-    M -- "git push<br/>upload your commits" --> RM
-    RM -- "git fetch<br/>download only, don't merge" --> M
-    RM == "git pull<br/>fetch + merge in one step" ==> M
-```
+- `git add` moves a change from your **working directory** into the
+  **staging area**.
+- `git commit` moves staged changes into your **local repo** as a
+  permanent snapshot on whatever branch you're standing on.
+- `git switch -c <branch>` splits off a new line of history so
+  experiments don't touch `main`; `git merge <branch>` brings that line
+  back in.
+- `git push` uploads your local commits to GitHub. `git fetch` downloads
+  what's new on GitHub without touching your files. `git pull` does
+  both at once (fetch, then merge).
 
 **Why this matters:**
 - **Branches exist so work-in-progress never breaks `main`.** You can
@@ -46,9 +38,6 @@ flowchart LR
 - **`pull` = `fetch` + `merge`.** That's why a `pull` can conflict too:
   under the hood it's merging `origin/main` into your `main`, exactly
   like merging a local branch.
-
-Keep this diagram open while you do Exercises 3, 4, and 7 — they are
-literally this picture, one arrow at a time.
 
 ## Exercise 1 — First commit
 
@@ -89,11 +78,10 @@ by accident.
 
 ## Exercise 3 — Branching
 
-**Why:** Refer to the diagram above — this exercise is the
-`main -> git switch -c feature -> feature` arrow. Branching gives you an
-isolated line of history to experiment in. If step 2 below goes
-horribly wrong, `main` was never touched; you just delete the branch
-and nothing is lost.
+**Why:** This is the `git switch -c` step from the overview above —
+splitting off an isolated line of history to experiment in. If step 2
+below goes horribly wrong, `main` was never touched; you just delete
+the branch and nothing is lost.
 
 1. `git switch -c practice/add-step` — creates the branch *and* moves
    you onto it in one step. Everything you commit from here only
@@ -109,10 +97,10 @@ and nothing is lost.
 
 ## Exercise 4 — Merge conflict (do this as a pair/group)
 
-**Why:** This is the `feature -- git merge feature --> main` arrow from
-the diagram, except we're deliberately engineering the "two branches
-edited the same line" scenario so you experience a conflict safely,
-with the team, before it happens for real with something that matters.
+**Why:** This is the `git merge` step from the overview above, except
+we're deliberately engineering the "two branches edited the same line"
+scenario so you experience a conflict safely, with the team, before it
+happens for real with something that matters.
 
 1. On `main`, edit `recipe.txt`'s step 3 to say "Cook on a hot griddle
    until golden brown, then flip carefully." Commit it on `main`.
@@ -138,8 +126,7 @@ with the team, before it happens for real with something that matters.
    This creates a special **merge commit** with two parent commits,
    permanently recording that these two lines of history rejoined here.
 8. `git log --oneline --graph --all` — see the merge commit tying both
-   branches together. This is the same shape as the diagram's left-hand
-   side, just drawn vertically through time instead of horizontally.
+   branches together, with two parent lines joining into one.
 
 ## Exercise 5 — Stash
 
@@ -147,66 +134,158 @@ with the team, before it happens for real with something that matters.
 teammate needs you on another branch), and your current change isn't
 ready to commit. Without stash, your only options would be to commit
 something half-finished or lose the edit by switching branches. Stash
-is a third option: a temporary shelf.
+is a third option: a temporary shelf that holds uncommitted changes
+*outside* your working directory and *outside* your commit history, so
+nothing you've typed is ever lost while you deal with the interruption.
+
+**Part A — basic stash and restore**
 
 1. Edit `team-notes.txt` but don't commit.
-2. `git stash` — working directory is clean again. The edit isn't gone,
-   it's just set aside.
-3. `git switch main`, then back to your branch.
-4. `git stash pop` — your edit returns. "Pop" both re-applies it and
-   removes it from the stash list, so you don't end up re-applying the
-   same stash twice by accident later.
+2. `git status` — confirm it shows as modified.
+3. `git stash` — working directory is clean again (run `git status` to
+   check). The edit isn't gone, it's just set aside on a stack.
+4. `git stash list` — shows one entry, e.g.
+   `stash@{0}: WIP on main: ...`. You can stash multiple times; they
+   stack up in order, most recent first.
+5. `git stash pop` — re-applies the most recent stash **and removes it
+   from the list** in one step. Run `git status` again to confirm your
+   edit is back.
+
+**Part B — why `pop` vs. `apply` matters**
+
+6. Make another edit to `team-notes.txt`, then `git stash`.
+7. `git stash apply` — re-applies the stash but **leaves it in the
+   list**. Run `git stash list` — notice the entry is still there.
+   Use `apply` (instead of `pop`) when you want to bring the same
+   stashed change onto more than one branch, or you're not 100% sure
+   you're ready to discard the backup yet.
+8. Once you're sure you don't need it anymore: `git stash drop` —
+   explicitly removes it from the list. (`pop` is really just
+   `apply` + `drop` combined.)
+
+**Part C — switching branches with a stash**
+
+9. Edit `todo.txt`, then `git stash` to clear your working directory.
+10. `git switch -c practice/urgent-fix` — now imagine this is the
+    "urgent interruption" branch. Make and commit a small change here,
+    then `git switch` back to where you started.
+11. `git stash pop` — your original `todo.txt` edit returns, completely
+    unaffected by the branch switching in between. This is the whole
+    point of stash: it's independent of which branch you're on when you
+    pop it.
 
 ## Exercise 6 — Undoing
 
-**Why:** Different situations call for different kinds of "undo," and
-picking the wrong one can cause real problems once you've pushed to a
-shared remote.
+**Why:** "Undo" means different things in Git depending on *where* the
+unwanted change lives — still in your working directory, staged, just
+committed, or already pushed/shared. Picking the wrong tool for the
+situation can either fail to help or (for `reset --hard`) permanently
+discard work, so walk through all four scenarios below to see when each
+one applies.
 
-1. Make an unwanted edit to `todo.txt` and commit it.
-2. `git revert HEAD` — creates a **new** commit that undoes the last
-   one, rather than deleting it. Use this once a commit is pushed or
-   shared: it preserves history (so teammates' copies aren't
-   contradicted) while still fixing the mistake going forward.
-3. Make another unwanted edit to `todo.txt`, don't commit it this time.
-4. `git restore todo.txt` — discards the uncommitted change entirely.
-   This is safe *only* because nothing was committed yet — there's no
-   history to protect, so there's nothing wrong with throwing it away.
+**Scenario A — discard an edit you haven't staged yet**
 
-## Exercise 7 — Remote sync (optional, pairs well with a teammate)
+1. Add an accidental line to `todo.txt`, don't stage or commit it.
+2. `git status` — shows it as "Changes not staged for commit."
+3. `git restore todo.txt` — throws the edit away and restores the file
+   to its last committed state. This is safe *only* because nothing was
+   committed yet — there's no history to protect, so there's nothing
+   wrong with deleting it outright.
 
-**Why:** This is the right-hand side of the diagram above —
-`push`/`fetch`/`pull` between your local repo and GitHub. Everything
-you've practiced so far (commits, branches, merges) happens locally
-first; these commands are how that work actually reaches your team.
+**Scenario B — unstage a file without losing the edit**
 
-If your team has set up a shared remote for this practice repo:
+4. Add another line to `todo.txt`, then `git add todo.txt`.
+5. `git status` — shows it as "Changes to be committed."
+6. `git restore --staged todo.txt` — moves it back to unstaged. Notice
+   the edit itself is still there (check with `git diff`); only the
+   staging decision was undone. Use this when you `git add .`'d too
+   much and want to un-include one file before committing.
 
-```bash
-git push -u origin practice/add-step
-```
+**Scenario C — fix the most recent commit before anyone else sees it**
 
-- `push` uploads your local commits to GitHub. The `-u` (set upstream)
-  only needs to happen once per branch — it tells Git "remember that my
-  local `practice/add-step` corresponds to `origin/practice/add-step`,"
-  so future pushes/pulls on this branch don't need the full
-  `origin practice/add-step` spelled out.
-- Nothing on GitHub changes until this `push` runs. That's deliberate:
-  you control exactly when your local commits become visible to
-  everyone else.
+7. `git add todo.txt && git commit -m "Fix todo list"`.
+8. Realize you forgot something: add one more small edit to `todo.txt`.
+9. `git add todo.txt`
+10. `git commit --amend -m "Fix todo list (updated)"` — replaces the
+    previous commit entirely instead of adding a new one. **Only do
+    this on commits that are still local and unpushed** — amending
+    rewrites the commit's identity, so if someone already pulled the
+    original, their history and yours would now disagree.
 
-Then have a teammate run:
+**Scenario D — undo a commit that's already pushed/shared**
 
-```bash
-git fetch     # downloads what's new on GitHub, but doesn't touch your files yet
-git pull      # downloads AND merges into your current branch, in one step
-```
+11. Make an unwanted edit to `todo.txt` and commit it:
+    `git commit -am "Oops, bad change"`.
+12. `git revert HEAD` — creates a **new** commit that undoes the last
+    one, rather than deleting or rewriting it. An editor opens with a
+    default message like "Revert \"Oops, bad change\"" — save and
+    close it. Use `revert` (never `reset`/`amend`) once a commit is
+    pushed or shared: it preserves history so teammates' copies aren't
+    contradicted, while still fixing the mistake going forward.
+13. `git log --oneline` — notice both the original bad commit *and* the
+    revert commit are visible. That transparency is the trade-off:
+    slightly messier history, in exchange for never silently rewriting
+    something someone else may already have.
 
-- `fetch` is the "look before you leap" option — it updates your
-  knowledge of `origin/main` without changing your working directory,
-  so you can inspect what changed (`git log main..origin/main`) before
-  deciding to merge it in.
-- `pull` is `fetch` + `merge` combined — convenient for the common case,
-  but remember it can conflict exactly like Exercise 4 did, just
-  between your branch and the remote's branch instead of two local
-  branches.
+## Exercise 7 — Push/pull scenarios with GitHub (do this with a teammate)
+
+**Why:** Commits, branches, and merges all happen locally first — push
+and pull are how that work actually reaches your team, and they're also
+where most "wait, what happened to my changes?" confusion comes from.
+Work through these four scenarios in order with a partner; they cover
+the situations you'll actually run into.
+
+> Setup: both of you `git clone` the same shared remote (or add it as a
+> second remote to your existing practice repo) so you each have a
+> local copy of the same history to start from.
+
+**Scenario A — first push of a new branch**
+
+1. `git switch -c practice/push-demo`
+2. Edit `team-notes.txt`, commit it.
+3. `git push -u origin practice/push-demo`
+   - `push` uploads your local commits to GitHub; nothing on GitHub
+     changes until this command runs — that's deliberate, you control
+     exactly when your work becomes visible.
+   - The `-u` (`--set-upstream`) only needs to happen once per branch:
+     it tells Git "my local `practice/push-demo` corresponds to
+     `origin/practice/push-demo`," so future `git push` / `git pull` on
+     this branch don't need the remote and branch name spelled out.
+
+**Scenario B — fast-forward pull (the easy case)**
+
+4. Have your teammate `git fetch` then `git log main..origin/main
+   --oneline` — this shows them exactly what's new on GitHub *before*
+   touching their files. `fetch` only updates Git's knowledge of the
+   remote; it never changes your working directory.
+5. Teammate runs `git pull` on `main` — since they have no conflicting
+   local commits, Git just "fast-forwards" their branch pointer forward
+   to match yours. No merge commit, no conflict — this is the common
+   case when only one person has been working on a branch.
+
+**Scenario C — push rejected (someone pushed first)**
+
+6. Both of you, on your own clones, edit `recipe.txt` (different lines)
+   and commit on `main`.
+7. Whoever pushes first succeeds normally.
+8. The second person runs `git push` — it's **rejected** with a message
+   like "Updates were rejected because the remote contains work that
+   you do not have locally." This is Git protecting the first person's
+   push from being silently overwritten.
+9. Fix it: `git pull` first (this merges the remote's new commit into
+   your local branch, possibly opening an editor for a merge commit
+   message), **then** `git push` again — now it succeeds, because your
+   local branch contains both sets of commits.
+
+**Scenario D — pull results in a merge conflict**
+
+10. Both of you edit the **same line** of `recipe.txt` on `main` and
+    commit, same as a local merge conflict but now across two different
+    machines.
+11. First push succeeds. Second person runs `git pull` — this time it
+    conflicts, exactly like Exercise 4, because `pull` is just `fetch`
+    + `merge` under the hood, and the merge step hits overlapping edits.
+12. Resolve it the same way as Exercise 4: open the file, fix the
+    `<<<<<<<`/`=======`/`>>>>>>>` markers, `git add recipe.txt`,
+    `git commit` to finish the merge, then `git push` to share the
+    resolution with the rest of the team.
