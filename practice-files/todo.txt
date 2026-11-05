@@ -1,0 +1,9 @@
+To-Do List
+==========
+
+[ ] Set up local git config
+[ ] Practice staging and committing
+[ ] Create a feature branch
+[ ] Make a change on main and on the feature branch to the same line
+[ ] Merge the branches and resolve the conflict
+[ ] Push to a shared remote (optional, if your team has one set up)

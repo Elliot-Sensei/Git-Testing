@@ -1,0 +1,13 @@
+Team Notes
+==========
+
+This is a sample file used for practicing Git basics.
+
+- Add a line below this one and commit it.
+- Try editing an existing line and see how `git diff` shows the change.
+- Nothing here is real project data, so edit freely.
+
+Meeting agenda ideas:
+1. Review sprint goals
+2. Discuss blockers
+3. Plan next sprint

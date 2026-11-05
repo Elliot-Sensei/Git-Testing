@@ -1,0 +1,18 @@
+Recipe: Pancakes
+=================
+
+Ingredients:
+- 1 cup flour
+- 2 tbsp sugar
+- 1 tbsp baking powder
+- 1 cup milk
+- 1 egg
+- 2 tbsp melted butter
+
+Steps:
+1. Mix dry ingredients.
+2. Whisk in milk, egg, and butter.
+3. Cook on a hot griddle until bubbles form, then flip.
+
+NOTE: This file is intentionally used later in the exercises to create a
+merge conflict — two branches will edit the "Steps" section differently.

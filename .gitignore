@@ -1,0 +1,4 @@
+# OS / editor junk — safe defaults for a training repo
+.DS_Store
+Thumbs.db
+*.log
