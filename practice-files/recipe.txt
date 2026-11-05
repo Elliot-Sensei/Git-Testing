@@ -16,3 +16,5 @@ Steps:
 
 NOTE: This file is intentionally used later in the exercises to create a
 merge conflict — two branches will edit the "Steps" section differently.
+
+> note: These are amazing
