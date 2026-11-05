@@ -1,7 +1,7 @@
 To-Do List
 ==========
 
-[ ] Set up local git config
+[X] Set up local git config
 [ ] Practice staging and committing
 [ ] Create a feature branch
 [ ] Make a change on main and on the feature branch to the same line
