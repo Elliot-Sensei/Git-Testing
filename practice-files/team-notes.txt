@@ -11,3 +11,4 @@ Meeting agenda ideas:
 1. Review sprint goals
 2. Discuss blockers
 3. Plan next sprint
+4. Review
