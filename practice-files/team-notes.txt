@@ -12,3 +12,4 @@ Meeting agenda ideas:
 2. Discuss blockers
 3. Plan next sprint
 4. Review the sprint
+5. Learn git
